@@ -5,6 +5,7 @@ from player import Player
 from debug import debug
 from support import*
 from random import choice
+from weapon import Weapon
 
 class Level:
     def __init__(self):
@@ -48,7 +49,10 @@ class Level:
                             #Tile((x,y), [self.visible_sprites, self.obstacle_sprites], "object", surf)
                             pass
 
-        self.player = Player((2000,1430), [self.visible_sprites], self.obstacle_sprites)
+        self.player = Player((2000,1430), [self.visible_sprites], self.obstacle_sprites, self.create_attack)
+
+    def create_attack(self):
+        Weapon(self.player,[self.visible_sprites])
 
     def run(self):
         #update and draw the game
@@ -65,7 +69,7 @@ class YSortCameraGroup(pygame.sprite.Group):
         self.offset = pygame.math.Vector2()
 
         # creating the ground
-        self.floor_surf = pygame.image.load("NinjaAdventure/map/ground.png").convert()
+        self.floor_surf = pygame.image.load("NinjaAdventure/graphics/tilemap/ground.png").convert()
         self.floor_rect =  self.floor_surf.get_rect(topleft = (0,0))
 
     def custom_draw(self, player):

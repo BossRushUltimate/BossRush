@@ -5,7 +5,7 @@ from settings import *
 from support import import_folder
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, pos, groups, obstacle_sprites):
+    def __init__(self, pos, groups, obstacle_sprites, create_attack):
         super().__init__(groups)
         self.image = pygame.image.load('NinjaAdventure/Actor/Characters/GreenNinja/forwardninja.png').convert_alpha()
         self.rect = self.image.get_rect(topleft = pos)
@@ -25,6 +25,7 @@ class Player(pygame.sprite.Sprite):
         self.attacking = False
         self.attack_cooldown = 400
         self.attack_time = pygame.time.get_ticks()
+        self.create_attack = create_attack
 
         self.obstacle_sprites = obstacle_sprites
 
@@ -59,7 +60,7 @@ class Player(pygame.sprite.Sprite):
         if keys[pygame.K_SPACE] and not self.attacking:
             self.attacking = True
             self.attack_time = pygame.time.get_ticks()
-            print("attack")
+            self.create_attack()
         
         if keys[pygame.K_LCTRL] and not self.attacking:
             self.attacking = True
