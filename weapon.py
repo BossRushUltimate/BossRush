@@ -14,6 +14,7 @@ class Weapon(pygame.sprite.Sprite):
         # placement
         if direction == 'right':
             self.rect = self.image.get_rect(midleft = player.rect.midright + pygame.math.Vector2(0,16))
+            
         elif direction == 'left':
             self.rect = self.image.get_rect(midright = player.rect.midleft + pygame.math.Vector2(0,16))
 

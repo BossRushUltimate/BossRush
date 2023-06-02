@@ -23,7 +23,7 @@ class Player(pygame.sprite.Sprite):
         self.direction = pygame.math.Vector2()
         self.speed = 5
         self.attacking = False
-        self.attack_cooldown = 400
+        self.attack_cooldown = 150
         self.attack_time = pygame.time.get_ticks()
         self.obstacle_sprites = obstacle_sprites
         
@@ -166,7 +166,9 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center = self.hitbox.center)
 
     def update(self):
-        self.input()
-        self.move(self.speed)
+        if not self.attacking:
+            self.input()
+            self.move(self.speed)
         self.cooldowns()
+        self.get_status()
         self.animate()
