@@ -27,7 +27,7 @@ class Level:
         }
         graphics = {
             "grass": import_folder("NinjaAdventure/graphics/grass"),
-            #"objects": import_folder("NinjaAdventure/graphics/objects")
+            "objects": import_folder("NinjaAdventure/graphics/objects")
         }
         #print(graphics)
         for style,layout in layouts.items():
@@ -43,10 +43,9 @@ class Level:
                             random_grass_image = choice(graphics["grass"])
                             Tile((x,y), [self.visible_sprites, self.obstacle_sprites], "grass", random_grass_image)
                         if style == "object":
-                            #print(int(col))
-                            #surf = graphics["objects"][int(col)]
-                            #Tile((x,y), [self.visible_sprites, self.obstacle_sprites], "object", surf)
-                            pass
+                            # print(int(col))
+                            surf = graphics["objects"][int(col)]
+                            Tile((x,y), [self.visible_sprites, self.obstacle_sprites], "object", surf)
 
         self.player = Player((2000,1430), [self.visible_sprites], self.obstacle_sprites)
 
