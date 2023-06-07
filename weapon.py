@@ -8,7 +8,7 @@ class Weapon(pygame.sprite.Sprite):
 
 
         #graphic
-        full_path = f'NinjaAdventure/graphics/weapons/{player.weapon}./{direction}.png'
+        full_path = f'NinjaAdventure/graphics/weapons/{player.weapon}/{direction}.png'
         self.image = pygame.image.load(full_path).convert_alpha()
 
         # placement
