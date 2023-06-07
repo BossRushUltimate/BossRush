@@ -56,22 +56,22 @@ class Player(pygame.sprite.Sprite):
         if keys[pygame.K_UP]:
             self.direction.y = -1
             self.status = 'up'
-            #self.image = pygame.image.load('NinjaAdventure/Actor/Characters/GreenNinja/backwardninja.png').convert_alpha()
+            
         elif keys[pygame.K_DOWN]:
             self.direction.y = 1
             self.status = 'down'
-            #self.image = pygame.image.load('NinjaAdventure/Actor/Characters/GreenNinja/forwardninja.png').convert_alpha()
+            
         else:
             self.direction.y = 0
 
         if keys[pygame.K_RIGHT]:
             self.direction.x = 1
             self.status = 'right'
-            #self.image = pygame.image.load('NinjaAdventure/Actor/Characters/GreenNinja/right.png').convert_alpha()
+            
         elif keys[pygame.K_LEFT]:
             self.direction.x = -1
             self.status = 'left'
-            #self.image = pygame.image.load('NinjaAdventure/Actor/Characters/GreenNinja/left.png').convert_alpha()
+            
         else:
             self.direction.x = 0
 
