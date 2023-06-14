@@ -11,7 +11,7 @@ class Enemy(Entity):
 		self.sprite_type = 'enemy'
 
 # This sets up the graphics
-		self.import_graphics(monster_data)
+		self.import_graphics(monster_name)
 		self.status = 'idle'
 		self.image = self.animations[self.status][self.frame_index]
 
@@ -40,7 +40,7 @@ class Enemy(Entity):
 		self.animations = {'up': [], 'down':[], 'left':[], 'right':[], 'right_idle':[],
                            'left_idle':[], 'up_idle':[], 'down_idle':[], 'right_attack':[],
                            'left_attack':[], 'up_attack':[], 'down_attack':[]}
-		monster_path = "NinjaAdventure/graphics/monsters/"
+		monster_path = f"NinjaAdventure/graphics/monsters/{name}"
 		for animation in self.animations.keys():
 			self.animations[animation] = import_folder(monster_path + animation)
 
