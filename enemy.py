@@ -10,17 +10,19 @@ class Enemy(Entity):
 		super().__init__(groups)
 		self.sprite_type = 'enemy'
 
-# This sets up the graphics
+		# This sets up the graphics
 		self.import_graphics(monster_name)
 		self.status = 'idle'
 		self.image = self.animations[self.status][self.frame_index]
 
-# This gets the movement and stats of the monster.
+		# This gets the movement and stats of the monster.
 		self.rect = self.image.get_rect(topleft = position)
 		self.hitbox = self.rect.inflate(0,-10)
 		self.obstacle_sprites = obstacle_sprites
+
+		# Monster stats
 		self.monster_name = monster_name
-		monster_info = monster_name[self.monster_name]
+		monster_info = monster_data[self.monster_name]
 		self.health = monster_info['health']
 		self.experience = monster_info['exp']
 		self.speed = monster_info['speed']
@@ -37,10 +39,8 @@ class Enemy(Entity):
 
 # This gets the graphics, I still need to update the filepath for getting the monsters to display on the screen.
 	def import_graphics(self,name):
-		self.animations = {'up': [], 'down':[], 'left':[], 'right':[], 'right_idle':[],
-                           'left_idle':[], 'up_idle':[], 'down_idle':[], 'right_attack':[],
-                           'left_attack':[], 'up_attack':[], 'down_attack':[]}
-		monster_path = f"NinjaAdventure/graphics/monsters/{name}"
+		self.animations = {'idle':[], 'move':[], 'attack':[]}
+		monster_path = f"NinjaAdventure/graphics/monsters/{name}/"
 		for animation in self.animations.keys():
 			self.animations[animation] = import_folder(monster_path + animation)
 
