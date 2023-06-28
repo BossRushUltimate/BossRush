@@ -44,15 +44,47 @@ class Player(Entity):
 
         # stats
         self.stats = {'health': 100, 'energy': 60, 'attack': 10, 'magic': 4, 'speed': 5}
+        self.max_stats = {'health': 300, 'energy': 140, 'attack': 20, 'magic': 10, 'speed': 10}
+        self.upgrade_cost = {'health': 100, 'energy': 100, 'attack': 100, 'magic': 100, 'speed': 100}
         self.health = self.stats['health'] * 0.5
         self.energy = self.stats['energy'] * 0.8
-        self.exp = 123
-        self.speed = self.stats['speed']
-
+        self.exp = 0
+        
         # damage timer
         self.vulnerable = True
         self.hurt_time = None
         self.invulnerability_duration = 500
+    
+    def upgrade_stat(self, stat):
+        
+        if stat in self.stats:
+            cost = self.upgrade_cost[stat]
+            if self.exp >= cost:
+                # Consume exp
+                self.exp -= cost
+                
+                # Update stat value
+                new_stat_value = self.stats[stat] * UPGRADE_MULTIPLIER
+                stat_increase = new_stat_value - self.stats[stat]
+                self.stats[stat] *= UPGRADE_MULTIPLIER
+                
+                # Increase actual stat value if stat is depreciable
+                if stat == "health":
+                    self.health += stat_increase
+                elif stat == "energy":
+                    self.energy += stat_increase
+                    
+                # Increase cost for next upgrade of same stat
+                self.upgrade_cost[stat]  *= 1.5
+                print(new_stat_value)
+                
+                # Prevent stats from exceeding maximums
+                max = self.max_stats[stat]
+                val = self.stats[stat]
+                if val > max:
+                    self.stats[stat] = max
+        else:
+            return -1
 
     def input(self):
 
@@ -228,7 +260,7 @@ class Player(Entity):
     def update(self):
         if not self.attacking:
             self.input()
-            self.move(self.speed)
+            self.move(self.stats["speed"])
         self.cooldowns()
         self.get_status()
         self.animate()
