@@ -75,7 +75,7 @@ class Level:
 									self.destroy_attack,
 									self.create_magic)
 							else:
-								if col == '390': monster_name = 'bamboo'
+								if col == '390': monster_name = 'demon'
 								elif col == '391': monster_name = 'spirit'
 								elif col == '392': monster_name ='raccoon'
 								else: monster_name = 'squid'

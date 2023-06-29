@@ -22,6 +22,10 @@ class AnimationPlayer:
 			'raccoon': import_folder('NinjaAdventure/graphics/particles/raccoon'),
 			'spirit': import_folder('NinjaAdventure/graphics/particles/nova'),
 			'bamboo': import_folder('NinjaAdventure/graphics/particles/bamboo'),
+            'butterfly': import_folder('NinjaAdventure/graphics/particles/nova'),
+            'demon': import_folder('NinjaAdventure/graphics/particles/nova'),
+            
+            
 			
 			# leafs 
 			'leaf': (
