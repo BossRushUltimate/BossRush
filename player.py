@@ -9,7 +9,7 @@ class Player(Entity):
         super().__init__(groups)
         self.image = pygame.image.load('NinjaAdventure/Actor/Characters/GreenNinja/forwardninja.png').convert_alpha()
         self.rect = self.image.get_rect(topleft = pos)
-        self.hitbox = self.rect.inflate(0, -26)
+        self.hitbox = self.rect.inflate(-6, HITBOX_OFFSET['player'])
 
         self.frame_index = 0
         self.animation_speed = .15
@@ -54,6 +54,10 @@ class Player(Entity):
         self.vulnerable = True
         self.hurt_time = None
         self.invulnerability_duration = 500
+
+        # import a sound
+        self.weapon_attack_sound = pygame.mixer.Sound('NinjaAdventure/audio/sword.wav')
+        self.weapon_attack_sound.set_volume(0.4)
     
     def upgrade_stat(self, stat):
         
@@ -117,6 +121,7 @@ class Player(Entity):
             self.attacking = True
             self.attack_time = pygame.time.get_ticks()
             self.create_attack()
+            self.weapon_attack_sound.play()
         
         if keys[pygame.K_LCTRL] and not self.attacking:
             self.attacking = True
