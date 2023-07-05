@@ -1,7 +1,7 @@
 import pygame 
 from settings import *
 from tile import Tile
-from player import Player
+from player import Player, CharacterSelector
 from debug import debug
 from support import *
 from random import choice, randint
@@ -17,7 +17,7 @@ class Level:
 
         # get the display surface 
         self.display_surface = pygame.display.get_surface()
-
+        
         # sprite group setup
         self.visible_sprites = YSortCameraGroup()
         self.obstacle_sprites = pygame.sprite.Group()
@@ -26,19 +26,25 @@ class Level:
         self.current_attack = None
         self.attack_sprites = pygame.sprite.Group()
         self.attackable_sprites = pygame.sprite.Group()
-        
         self.game_paused = False
+        
         # sprite setup
+        self.player_selector = CharacterSelector()
+        self.player_name = player_name
+        self.player = None
+        self.upgrade_menu = None
         self.create_map()
 
         # user interface 
         self.ui = UI()
         self.upgrade_menu = Upgrade(self.player)
-
+        
         #particles
         self.animation_player = AnimationPlayer()
         self.magic_player = MagicPlayer(self.animation_player)
-
+        
+        self.player_selected = False
+        
     def create_map(self):
         layouts = {
             'boundary': import_csv_layout('NinjaAdventure/map/map_FloorBlocks.csv'),
@@ -66,16 +72,22 @@ class Level:
                         if style == 'object':
                             surf = graphics['objects'][int(col)]
                             Tile((x,y),[self.visible_sprites,self.obstacle_sprites],'object',surf)
-
                         if style == 'entities':
                             if col == '394':
+                                if self.player:
+                                    self.player.kill()
+                                    self.player = None
                                 self.player = Player(
+                                    self.player_name,
                                     (x,y),
                                     [self.visible_sprites],
                                     self.obstacle_sprites,
                                     self.create_attack,
                                     self.destroy_attack,
                                     self.create_magic)
+                                if self.upgrade_menu:
+                                    self.upgrade_menu = None
+                                self.upgrade_menu = Upgrade(self.player)
                             else:
                                 if col == '390': monster_name = 'bamboo'
                                 elif col == '391': monster_name = 'spirit'
@@ -88,18 +100,14 @@ class Level:
                                     self.damage_player,
                                     self.trigger_death_particles,
                                     self.add_exp)
-
     def create_attack(self):
-        
         self.current_attack = Weapon(self.player,[self.visible_sprites,self.attack_sprites])
 
     def create_magic(self,style,strength,cost):
         if style == 'heal':
             self.magic_player.heal(self.player, strength, cost, [self.visible_sprites])
-
         if style == 'flame':
             self.magic_player.flame(self.player, cost, [self.visible_sprites, self.attack_sprites])
-
     def destroy_attack(self):
         if self.current_attack:
             self.current_attack.kill()
@@ -137,18 +145,29 @@ class Level:
 
     def add_exp(self, amount):
         self.player.exp += amount
-
+    def display(self):
+        self.visible_sprites.custom_draw(self.player)
+        self.ui.display(self.player)
+        
     def run(self):
         # update and draw the game
         self.visible_sprites.custom_draw(self.player)
         self.ui.display(self.player)
-        if not self.game_paused:	
-            self.visible_sprites.update()
-            self.visible_sprites.enemy_update(self.player)
-            self.player_attack_logic()
+        
+        if self.player_selected:
+            if not self.game_paused:	
+                self.visible_sprites.update()
+                self.visible_sprites.enemy_update(self.player)
+                self.player_attack_logic()
+            else:
+                self.upgrade_menu.input()
+                self.upgrade_menu.display()
         else:
-            self.upgrade_menu.input()
-            self.upgrade_menu.display()
+            self.player_selected = self.player_selector.run_turn()
+            self.player_name = self.player_selector.get_selected_name()
+            if self.player_selected:
+                self.create_map()
+            
     def toggle_menu(self):
         self.game_paused = not self.game_paused
 
