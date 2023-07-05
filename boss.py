@@ -55,7 +55,7 @@ class Boss(Entity):
 
         #Phases
         self.phase = 1
-        self.phase_time = 2000
+        self.phase_time = 5000
         self.phase_start_time = pygame.time.get_ticks()
         
     # This gets the graphics, I still need to update the filepath for getting the monsters to display on the screen.
@@ -95,8 +95,15 @@ class Boss(Entity):
             self.attack_time = pygame.time.get_ticks()
             self.damage_player(self.attack_damage, self.attack_type)
             self.attack_sound.play()
-        elif self.status == 'move':
+        elif self.phase == 1:
+            self.vulnerable = False
             self.direction = self.get_player_distance_direction(player)[1]
+        elif self.phase == 2:
+            self.direction = -self.get_player_distance_direction(player)[1] 
+        elif self.phase == 3:
+            self.status = 'idle'
+            self.vulnerable = True
+            self.direction = self.get_player_distance_direction(player)[1] - self.get_player_distance_direction(player)[1]  # Always 0   
         else:
             self.direction = pygame.math.Vector2()
 
@@ -113,10 +120,9 @@ class Boss(Entity):
         self.rect = self.image.get_rect(center = self.hitbox.center)
 
         #Flicker
-        if not self.vulnerable:
-            pass
-            # alpha = self.wave_value()
-            # self.image.set_alpha(alpha)
+        if self.vulnerable:
+            alpha = self.wave_value()
+            self.image.set_alpha(alpha)
         else:
             self.image.set_alpha(255)
 
@@ -128,29 +134,25 @@ class Boss(Entity):
                 self.can_attack = True
 
         if self.phase == 1:
+            #print("Phase 1")
             current_time = pygame.time.get_ticks()
             if current_time - self.phase_time >= self.phase_start_time:
                 self.phase += 1
                 self.phase_start_time = pygame.time.get_ticks()
-                print("Change Phase To Magic")
 
         if self.phase == 2:
+           # print("Phase 2")    
             current_time = pygame.time.get_ticks() 
             if current_time - self.phase_time >= self.phase_start_time:
                 self.phase += 1
                 self.phase_start_time = pygame.time.get_ticks()
-                print("Magic Phase")    
                 
         if self.phase == 3:
+            #print("Phase 3")         
             current_time = pygame.time.get_ticks()
-            if current_time - self.phase_time >= self.phase_start_time:
+            if current_time - 1000 >= self.phase_start_time:
                 self.phase = 1
                 self.phase_start_time = pygame.time.get_ticks()
-                print("Back to First Phase")         
-        # if not self.vulnerable:
-        #     if current_time - self.hit_time >= self.invincibility_duration:
-        #         self.vulnerable = True
-
 
     def get_damage(self,player,attack_type):
         if self.vulnerable:
@@ -158,9 +160,10 @@ class Boss(Entity):
             self.direction = self.get_player_distance_direction(player)[1]
             if attack_type == 'weapon':
                 self.health -= 100
+                self.phase = 1
             # Hit by magic
-            else:
-                self.health -= 100
+            # else:
+            #     self.health -= 100
 
             self.hit_time = pygame.time.get_ticks()
             self.vulnerable = False
@@ -172,17 +175,12 @@ class Boss(Entity):
             self.add_exp(self.experience)
             self.death_sound.play()
 
-    def hit_reaction(self):
-        pass
-        # if not self.vulnerable:
-        #     self.direction *= -self.resistance
-
     def update(self):
-        self.hit_reaction()
         self.move(self.speed)
         self.animate()
         self.cooldowns()
         self.check_death()
+        print(self.health)
 
     def enemy_update(self,player):
         self.get_status(player)
