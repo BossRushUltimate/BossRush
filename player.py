@@ -37,6 +37,10 @@ class Player(Entity):
         self.can_switch_weapon = True
         self.weapon_switch_time = None
         self.switch_duration_cooldown = 200
+        
+        # import a sound
+        self.weapon_attack_sound = pygame.mixer.Sound('NinjaAdventure/audio/sword.wav')
+        self.weapon_attack_sound.set_volume(0.4)
 
         # magic
         self.creat_magic = create_magic
@@ -57,41 +61,6 @@ class Player(Entity):
         self.vulnerable = True
         self.hurt_time = None
         self.invulnerability_duration = 500
-    
-    def upgrade_stat(self, stat):
-        
-        if stat in self.stats:
-            cost = self.upgrade_cost[stat]
-            if self.exp >= cost:
-                # Consume exp
-                self.exp -= cost
-                
-                # Update stat value
-                new_stat_value = self.stats[stat] * UPGRADE_MULTIPLIER
-                stat_increase = new_stat_value - self.stats[stat]
-                self.stats[stat] *= UPGRADE_MULTIPLIER
-                
-                # Increase actual stat value if stat is depreciable
-                if stat == "health":
-                    self.health += stat_increase
-                elif stat == "energy":
-                    self.energy += stat_increase
-                    
-                # Increase cost for next upgrade of same stat
-                self.upgrade_cost[stat]  *= 1.5
-                print(new_stat_value)
-                
-                # Prevent stats from exceeding maximums
-                max = self.max_stats[stat]
-                val = self.stats[stat]
-                if val > max:
-                    self.stats[stat] = max
-        else:
-            return -1
-
-        # import a sound
-        self.weapon_attack_sound = pygame.mixer.Sound('NinjaAdventure/audio/sword.wav')
-        self.weapon_attack_sound.set_volume(0.4)
     
     def upgrade_stat(self, stat):
         

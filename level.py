@@ -30,7 +30,7 @@ class Level:
         
         # sprite setup
         self.player_selector = CharacterSelector()
-        self.player_name = player_name
+        self.player_name = "Agent"
         self.player = None
         self.upgrade_menu = None
         self.create_map()
@@ -46,6 +46,10 @@ class Level:
         self.player_selected = False
         
     def create_map(self):
+        self.visible_sprites = YSortCameraGroup()
+        self.obstacle_sprites = pygame.sprite.Group()
+        self.attack_sprites = pygame.sprite.Group()
+        self.attackable_sprites = pygame.sprite.Group()
         layouts = {
             'boundary': import_csv_layout('NinjaAdventure/map/map_FloorBlocks.csv'),
             'grass': import_csv_layout('NinjaAdventure/map/map_Grass.csv'),
@@ -100,6 +104,7 @@ class Level:
                                     self.damage_player,
                                     self.trigger_death_particles,
                                     self.add_exp)
+    
     def create_attack(self):
         self.current_attack = Weapon(self.player,[self.visible_sprites,self.attack_sprites])
 
@@ -108,6 +113,7 @@ class Level:
             self.magic_player.heal(self.player, strength, cost, [self.visible_sprites])
         if style == 'flame':
             self.magic_player.flame(self.player, cost, [self.visible_sprites, self.attack_sprites])
+    
     def destroy_attack(self):
         if self.current_attack:
             self.current_attack.kill()
@@ -145,6 +151,7 @@ class Level:
 
     def add_exp(self, amount):
         self.player.exp += amount
+    
     def display(self):
         self.visible_sprites.custom_draw(self.player)
         self.ui.display(self.player)
@@ -170,7 +177,6 @@ class Level:
             
     def toggle_menu(self):
         self.game_paused = not self.game_paused
-
 
 class YSortCameraGroup(pygame.sprite.Group):
     def __init__(self):
