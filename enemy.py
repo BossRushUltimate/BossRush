@@ -6,7 +6,6 @@ from support import import_folder
 class Enemy(Entity):
 # This sets up the name of the monster as well as the monster's position.
     def __init__(self,monster_name,position,groups,obstacle_sprites,damage_player, trigger_death_particles, add_exp):
-    
         super().__init__(groups)
         self.sprite_type = 'enemy'
 
@@ -44,7 +43,7 @@ class Enemy(Entity):
         self.vulnerable = True
         self.hit_time = None
         self.invincibility_duration = 300
-
+        
         # sounds
         self.death_sound = pygame.mixer.Sound('NinjaAdventure/audio/death.wav')
         self.hit_sound = pygame.mixer.Sound('NinjaAdventure/audio/hit.wav')
@@ -52,7 +51,7 @@ class Enemy(Entity):
         self.death_sound.set_volume(0.2)
         self.hit_sound.set_volume(0.2)
         self.attack_sound.set_volume(0.3)
-
+        
     # This gets the graphics, I still need to update the filepath for getting the monsters to display on the screen.
     def import_graphics(self,name):
         self.animations = {'idle':[], 'move':[], 'attack':[]}
@@ -144,7 +143,6 @@ class Enemy(Entity):
             self.trigger_death_particles(self.rect.center, self.monster_name)
             self.add_exp(self.experience)
             self.death_sound.play()
-
     def hit_reaction(self):
         if not self.vulnerable:
             self.direction *= -self.resistance
