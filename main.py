@@ -9,14 +9,14 @@ class Game:
         # general setup
         pygame.init()
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
-        pygame.display.set_caption("Zelda")
+        pygame.display.set_caption("Boss Rush")
         self.clock = pygame.time.Clock()
 
         self.level = Level()
 
         # sound
         main_sound = pygame.mixer.Sound('NinjaAdventure/audio/main.ogg')
-        main_sound.play(loops = -1)
+        # main_sound.play(loops = -1)
 
     def run(self):
         while True:
