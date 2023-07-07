@@ -13,7 +13,7 @@ from magic import MagicPlayer
 from upgrade import Upgrade
 
 class Level:
-    def __init__(self, player_name="Agent"):
+    def __init__(self):
 
         # get the display surface 
         self.display_surface = pygame.display.get_surface()
@@ -26,28 +26,30 @@ class Level:
         self.current_attack = None
         self.attack_sprites = pygame.sprite.Group()
         self.attackable_sprites = pygame.sprite.Group()
-        
         self.game_paused = False
         
-        self.player_selector = CharacterSelector()
-        self.player_name = player_name
-        
         # sprite setup
+        self.player_selector = CharacterSelector()
+        self.player_name = "Agent"
         self.player = None
         self.upgrade_menu = None
         self.create_map()
 
         # user interface 
         self.ui = UI()
+        self.upgrade_menu = Upgrade(self.player)
         
-
         #particles
         self.animation_player = AnimationPlayer()
         self.magic_player = MagicPlayer(self.animation_player)
+        
         self.player_selected = False
-        # self.player_selector = CharacterSelector()
         
     def create_map(self):
+        self.visible_sprites = YSortCameraGroup()
+        self.obstacle_sprites = pygame.sprite.Group()
+        self.attack_sprites = pygame.sprite.Group()
+        self.attackable_sprites = pygame.sprite.Group()
         layouts = {
             'boundary': import_csv_layout('NinjaAdventure/map/map_FloorBlocks.csv'),
             'grass': import_csv_layout('NinjaAdventure/map/map_Grass.csv'),
@@ -70,6 +72,7 @@ class Level:
                         if style == 'grass':
                             random_grass_image = choice(graphics['grass'])
                             Tile((x,y),[self.visible_sprites,self.obstacle_sprites,self.attackable_sprites],'grass',random_grass_image)
+
                         if style == 'object':
                             surf = graphics['objects'][int(col)]
                             Tile((x,y),[self.visible_sprites,self.obstacle_sprites],'object',surf)
@@ -101,23 +104,16 @@ class Level:
                                     self.damage_player,
                                     self.trigger_death_particles,
                                     self.add_exp)
+    
     def create_attack(self):
         self.current_attack = Weapon(self.player,[self.visible_sprites,self.attack_sprites])
 
     def create_magic(self,style,strength,cost):
         if style == 'heal':
             self.magic_player.heal(self.player, strength, cost, [self.visible_sprites])
-        
         if style == 'flame':
             self.magic_player.flame(self.player, cost, [self.visible_sprites, self.attack_sprites])
     
-    def destroy_attack(self):
-        print("destroying weapon")
-        print(bool(self.current_attack))
-        if self.current_attack:
-            self.current_attack.kill()
-        self.current_attack = None
-
     def destroy_attack(self):
         if self.current_attack:
             self.current_attack.kill()
@@ -155,15 +151,16 @@ class Level:
 
     def add_exp(self, amount):
         self.player.exp += amount
-        
+    
     def display(self):
         self.visible_sprites.custom_draw(self.player)
         self.ui.display(self.player)
-    
+        
     def run(self):
         # update and draw the game
         self.visible_sprites.custom_draw(self.player)
         self.ui.display(self.player)
+        
         if self.player_selected:
             if not self.game_paused:	
                 self.visible_sprites.update()
@@ -177,11 +174,9 @@ class Level:
             self.player_name = self.player_selector.get_selected_name()
             if self.player_selected:
                 self.create_map()
-            pass
             
     def toggle_menu(self):
         self.game_paused = not self.game_paused
-
 
 class YSortCameraGroup(pygame.sprite.Group):
     def __init__(self):

@@ -5,6 +5,12 @@ FPS = 60
 TILESIZE = 64
 UPGRADE_MULTIPLIER = 1.2
 
+HITBOX_OFFSET = {
+    'player': -26,
+    'object': -40,
+    'grass': -10,
+    'invisible': 0}
+
 # ui
 BAR_HEIGHT = 20
 HEALTH_BAR_WIDTH = 200

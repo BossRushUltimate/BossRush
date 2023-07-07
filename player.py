@@ -12,7 +12,7 @@ class Player(Entity):
         self.image = pygame.image.load(f'{PLAYER_DIRECTORY}\\{name}\\down_idle\\idle_down.png').convert_alpha()
         self.name = name
         self.rect = self.image.get_rect(topleft = pos)
-        self.hitbox = self.rect.inflate(0, -26)
+        self.hitbox = self.rect.inflate(-6, HITBOX_OFFSET['player'])
 
         self.frame_index = 0
         self.animation_speed = .15
@@ -37,6 +37,10 @@ class Player(Entity):
         self.can_switch_weapon = True
         self.weapon_switch_time = None
         self.switch_duration_cooldown = 200
+        
+        # import a sound
+        self.weapon_attack_sound = pygame.mixer.Sound('NinjaAdventure/audio/sword.wav')
+        self.weapon_attack_sound.set_volume(0.4)
 
         # magic
         self.creat_magic = create_magic
@@ -120,6 +124,7 @@ class Player(Entity):
             self.attacking = True
             self.attack_time = pygame.time.get_ticks()
             self.create_attack()
+            self.weapon_attack_sound.play()
         
         if keys[pygame.K_LCTRL] and not self.attacking:
             self.attacking = True
