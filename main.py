@@ -16,7 +16,7 @@ class Game:
 
         # sound
         main_sound = pygame.mixer.Sound('NinjaAdventure/audio/forest.mp3')
-        main_sound.play(loops = -1)
+        #main_sound.play(loops = -1)
 
     def run(self):
         while True:
