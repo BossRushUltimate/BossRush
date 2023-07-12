@@ -124,7 +124,6 @@ class Enemy(Entity):
             if current_time - self.hit_time >= self.invincibility_duration:
                 self.vulnerable = True
 
-
     def get_damage(self,player,attack_type):
         if self.vulnerable:
             self.hit_sound.play()
@@ -143,11 +142,13 @@ class Enemy(Entity):
             self.trigger_death_particles(self.rect.center, self.monster_name)
             self.add_exp(self.experience)
             self.death_sound.play()
+    
     def hit_reaction(self):
         if not self.vulnerable:
             self.direction *= -self.resistance
 
     def update(self):
+        # self.health -= 5
         self.hit_reaction()
         self.move(self.speed)
         self.animate()

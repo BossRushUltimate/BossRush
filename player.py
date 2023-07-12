@@ -1,6 +1,7 @@
 import pygame
 from settings import *
 from entity import Entity
+from weapon import Weapon
 from support import import_folder
 import os
 PLAYER_DIRECTORY = "NinjaAdventure\graphics\player"
@@ -37,6 +38,7 @@ class Player(Entity):
         self.can_switch_weapon = True
         self.weapon_switch_time = None
         self.switch_duration_cooldown = 200
+        self.current_attack = None
         
         # import a sound
         self.weapon_attack_sound = pygame.mixer.Sound('NinjaAdventure/audio/sword.wav')
@@ -53,8 +55,8 @@ class Player(Entity):
         self.stats = {'health': 100, 'energy': 60, 'attack': 10, 'magic': 4, 'speed': 5}
         self.max_stats = {'health': 300, 'energy': 140, 'attack': 20, 'magic': 10, 'speed': 10}
         self.upgrade_cost = {'health': 100, 'energy': 100, 'attack': 100, 'magic': 100, 'speed': 100}
-        self.health = self.stats['health'] * 0.05
-        self.energy = self.stats['energy'] * 0.8
+        self.health = self.stats['health']
+        self.energy = self.stats['energy']
         self.exp = 0
         
         # damage timer
@@ -64,6 +66,16 @@ class Player(Entity):
     
     def is_alive(self):
         return self.health >= 0
+    
+    def is_active(self):
+        return not self.attacking and not self.status=="victory" and self.is_alive()
+    
+    def declare_victory(self):
+        print("\t\tvictory!")
+        self.status = "victory"
+        self.direction.x = 0
+        self.direction.y = 0
+        self.attacking = False
     
     def upgrade_stat(self, stat):
         
@@ -96,6 +108,9 @@ class Player(Entity):
         else:
             return -1
 
+    def clear_attack(self):
+        self.current_attack = None
+    
     def input(self):
 
         keys = pygame.key.get_pressed()
@@ -162,8 +177,13 @@ class Player(Entity):
     def get_status(self):
         #idle status
         if self.direction.x == 0 and self.direction.y == 0:
-            if not 'idle' in self.status and not 'attack' in self.status and not "death" in self.status:
+            if (
+                not 'idle' in self.status and not 'attack' in self.status and 
+                not "death" in self.status and not "victory" in self.status
+               ):
                 self.status = self.status + '_idle'
+            elif "victory" in self.status:
+                self.status = "victory"
 
         if self.attacking:
             self.direction.x = 0
@@ -172,7 +192,7 @@ class Player(Entity):
                 if 'idle' in self.status:
                     #overwrite idle
                     self.status = self.status.replace('_idle', '_attack')
-                else:
+                elif not "victory" in self.status:
                     self.status = self.status + '_attack'
         else:
             if 'attack' in self.status:
@@ -211,7 +231,8 @@ class Player(Entity):
         character_path = f"{PLAYER_DIRECTORY}\\{self.name}\\"
         self.animations = {'up': [], 'down':[], 'left':[], 'right':[], 'right_idle':[],
                            'left_idle':[], 'up_idle':[], 'down_idle':[], 'right_attack':[],
-                           'left_attack':[], 'up_attack':[], 'down_attack':[], "death": []}
+                           'left_attack':[], 'up_attack':[], 'down_attack':[], "death": [], 
+                           'victory':[]}
         for animation in self.animations.keys():
             full_path = character_path + animation
             self.animations[animation] = import_folder(full_path)
@@ -239,7 +260,7 @@ class Player(Entity):
         #loop over the frame index
         self.frame_index += self.animation_speed
         if self.frame_index >= len(animation):
-            if not "death" in self.status:
+            if not "death" in self.status and not "victory" in self.status:
                 self.frame_index = 0
             else:
                 self.frame_index = len(animation)-1
@@ -272,21 +293,36 @@ class Player(Entity):
             self.energy = self.stats['energy']
 
     def update(self):
-        if not self.attacking and self.is_alive():
+        if self.is_active():
             self.input()
             self.move(self.stats["speed"])
+        elif not self.is_alive():
+            self.status = "death"
+            self.vulnerable = False
+            self.attacking = False
+        elif self.status == "victory":
+            self.attacking = False
+            self.vulnerable == False
+        
         self.cooldowns()
         self.get_status()
         self.animate()
         self.energy_recovery()
-        if not self.is_alive():
-            self.status = "death"
-            self.vulnerable = False
-
+        
     def draw(self, surface:pygame.Surface):
-        dimensions = self.image.get_size()
-        destination = surface.get_rect().center + pygame.math.Vector2(dimensions[0]//-2, dimensions[1]//-2)
+        surf_center = pygame.math.Vector2(surface.get_rect().center)
+        player_x, player_y = self.rect.center
+        player_offset = pygame.math.Vector2(player_x*-1, player_y*-1)
+        destination = player_offset + self.rect.topleft + surf_center
+        
         surface.blit(self.image, destination)
+        
+        if self.current_attack != None:
+            self.current_attack:Weapon
+            att_location = pygame.math.Vector2(self.current_attack.rect.topleft)
+            destination =  player_offset + att_location + surf_center
+            image = self.current_attack.image
+            surface.blit(image, destination)
 
 class CharacterSelector:
     def __init__(self) -> None:

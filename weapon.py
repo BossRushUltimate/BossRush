@@ -13,18 +13,33 @@ class Weapon(pygame.sprite.Sprite):
         self.image = pygame.image.load(full_path).convert_alpha()
 
         # placement
+        p_width, p_height = player.rect.size
+        w_width, w_height = self.image.get_rect().size
         if direction == 'right':
-            self.rect = self.image.get_rect(midleft = player.rect.midright + pygame.math.Vector2(0,16))
+            self.offset = pygame.math.Vector2(p_width//2, p_height//4)
+            self.offset += pygame.math.Vector2(w_width//2, 0)
             
         elif direction == 'left':
-            self.rect = self.image.get_rect(midright = player.rect.midleft + pygame.math.Vector2(0,16))
-
+            self.offset = pygame.math.Vector2(p_width//-2, p_height//4)
+            self.offset += pygame.math.Vector2(w_width//-2, 0)
+            
         elif direction == 'down':
-            self.rect = self.image.get_rect(midtop = player.rect.midbottom + pygame.math.Vector2(-10,0))
-        
+            self.offset = pygame.math.Vector2(p_width//-5, p_height//2)
+            self.offset += pygame.math.Vector2(0, w_height//2)
+            
         elif direction == 'up':
-            self.rect = self.image.get_rect(midbottom = player.rect.midtop + pygame.math.Vector2(-10,0))
+            self.offset = pygame.math.Vector2(p_height//-5, p_height//-2)
+            self.offset += pygame.math.Vector2(0, w_height//-2)
+        
+        elif direction == "victory":
+            self.offset = pygame.math.Vector2((p_width//-2), (p_height//-2))
+            # For some reason the weapon heights for this victory pose differ a lot!
+            # This equation was the easiest way I could find to get the weapons to 
+            # appear reliably in the correct position above the player's right hand.
+            self.offset += pygame.math.Vector2(8, (((w_height-32)**2)//-73)-2)
         
         else:
             assert("Unexpected Direction")
+        self.rect = self.image.get_rect(center=player.rect.center + self.offset)
+        self.drawn = False
 
