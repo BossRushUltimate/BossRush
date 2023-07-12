@@ -53,7 +53,7 @@ class Player(Entity):
         self.stats = {'health': 100, 'energy': 60, 'attack': 10, 'magic': 4, 'speed': 5}
         self.max_stats = {'health': 300, 'energy': 140, 'attack': 20, 'magic': 10, 'speed': 10}
         self.upgrade_cost = {'health': 100, 'energy': 100, 'attack': 100, 'magic': 100, 'speed': 100}
-        self.health = self.stats['health'] * 0.5
+        self.health = self.stats['health'] * 0.05
         self.energy = self.stats['energy'] * 0.8
         self.exp = 0
         
@@ -61,6 +61,9 @@ class Player(Entity):
         self.vulnerable = True
         self.hurt_time = None
         self.invulnerability_duration = 500
+    
+    def is_alive(self):
+        return self.health >= 0
     
     def upgrade_stat(self, stat):
         
@@ -83,7 +86,7 @@ class Player(Entity):
                     
                 # Increase cost for next upgrade of same stat
                 self.upgrade_cost[stat]  *= 1.5
-                print(new_stat_value)
+                # print(new_stat_value)
                 
                 # Prevent stats from exceeding maximums
                 max = self.max_stats[stat]
@@ -159,7 +162,7 @@ class Player(Entity):
     def get_status(self):
         #idle status
         if self.direction.x == 0 and self.direction.y == 0:
-            if not 'idle' in self.status and not 'attack' in self.status:
+            if not 'idle' in self.status and not 'attack' in self.status and not "death" in self.status:
                 self.status = self.status + '_idle'
 
         if self.attacking:
@@ -208,7 +211,7 @@ class Player(Entity):
         character_path = f"{PLAYER_DIRECTORY}\\{self.name}\\"
         self.animations = {'up': [], 'down':[], 'left':[], 'right':[], 'right_idle':[],
                            'left_idle':[], 'up_idle':[], 'down_idle':[], 'right_attack':[],
-                           'left_attack':[], 'up_attack':[], 'down_attack':[]}
+                           'left_attack':[], 'up_attack':[], 'down_attack':[], "death": []}
         for animation in self.animations.keys():
             full_path = character_path + animation
             self.animations[animation] = import_folder(full_path)
@@ -236,7 +239,10 @@ class Player(Entity):
         #loop over the frame index
         self.frame_index += self.animation_speed
         if self.frame_index >= len(animation):
-            self.frame_index = 0
+            if not "death" in self.status:
+                self.frame_index = 0
+            else:
+                self.frame_index = len(animation)-1
 
         # set the image
         self.image = animation[int(self.frame_index)]
@@ -266,13 +272,21 @@ class Player(Entity):
             self.energy = self.stats['energy']
 
     def update(self):
-        if not self.attacking:
+        if not self.attacking and self.is_alive():
             self.input()
             self.move(self.stats["speed"])
         self.cooldowns()
         self.get_status()
         self.animate()
         self.energy_recovery()
+        if not self.is_alive():
+            self.status = "death"
+            self.vulnerable = False
+
+    def draw(self, surface:pygame.Surface):
+        dimensions = self.image.get_size()
+        destination = surface.get_rect().center + pygame.math.Vector2(dimensions[0]//-2, dimensions[1]//-2)
+        surface.blit(self.image, destination)
 
 class CharacterSelector:
     def __init__(self) -> None:
@@ -281,99 +295,152 @@ class CharacterSelector:
         self.font = pygame.font.Font(UI_FONT, UI_FONT_SIZE)
         
         # Create CharacterTiles
+        self.frame_list = []
+        self.wrap_frames = []
+        self.character_list = []
+        self.max_col = 5
+        self.max_row = 6
+        self.character_offset = self.max_col*-1
         self.create_items()
+        print(self.wrap_frames)
         
         # scrolling details
-        self.scroll_amount = 5
+        self.scroll_amount = 11
         self.dy = 0
         
         # Selection
         self.selected_index = 0
-        self.max_col = 5
-        self.max_row = len(self.item_list)//5
-        self.max_index = len(self.item_list)
+        self.max_index = len(self.character_list)
         dimensions = self.display_surface.get_size()
         self.height =  dimensions[1] * 0.8
         self.width = dimensions[0] // self.max_col
         self.cooldown_time = 15
-        self.cooldown = 0
+        self.cooldown = -1
         
         # Quit?
         self.selection_finished = False
+        print(
+            f"cols    = {self.max_col}",
+            f"rows    = {self.max_row}",
+            f"ac_row  = {len(self.frame_list[0])}",
+            sep="\n"
+        )
         
     def input(self):
         keys = pygame.key.get_pressed()
-        if self.cooldown <= 0:
-            self.dy = 0
-            
+        if self.cooldown < 0:
             if keys[pygame.K_RIGHT]:
                 self.selected_index += 1
-                self.selected_index %= self.max_index
+                if self.selected_index % self.max_col == 0:
+                    self.selected_index -= self.max_col
                 self.cooldown = self.cooldown_time
             
             elif keys[pygame.K_LEFT]:
                 self.selected_index -= 1
-                self.selected_index %= self.max_index
+                if self.selected_index % self.max_col == self.max_col-1:
+                    self.selected_index += self.max_col
                 self.cooldown = self.cooldown_time
             
             elif keys[pygame.K_UP]:
                 self.selected_index -= self.max_col
-                if self.selected_index < 0:
-                    self.selected_index %= self.max_index
-                else:
-                    self.dy += self.scroll_amount
+                self.selected_index %= self.max_index
+                self.dy += self.scroll_amount
                 self.cooldown = self.cooldown_time
             
             elif keys[pygame.K_DOWN]:
                 self.selected_index += self.max_col
-                if self.selected_index > self.max_index:
-                    self.selected_index %= self.max_index
-                else:
-                    self.dy -= self.scroll_amount
+                self.selected_index %= self.max_index
+                self.dy -= self.scroll_amount
                 self.cooldown = self.cooldown_time
                 
             elif keys[pygame.K_SPACE]:
                 self.selection_finished = True
                 self.cooldown = self.cooldown_time
-        else:
+        elif self.cooldown > 0:
+            # print(f"cd: {self.cooldown}\ndy: {self.dy}\n")
             self.cooldown -= 1
             if self.dy != 0:
                 self.scroll()
+        else:
+            if self.dy != 0:
+                self.finish_scroll()
+                self.dy = 0
+                print("finishing")
+            self.cooldown -= 1
+
+    def finish_scroll(self):
+        self.character_offset += self.max_col * (-1 if self.dy > 0 else 1)
+        self.character_offset %= self.max_index
+        i_frame = 0
+        for row in self.frame_list:
+            for frame in row:
+                frame.set_y_offset(0)
+                i_frame+=1
+        for frame in self.wrap_frames:
+            frame.set_y_offset(0)
             
     def scroll(self):
-        for item in self.item_list:
-            item.scroll_y(self.dy)
+        for row in self.frame_list:
+            for frame in row:
+                frame.scroll_y(self.dy)
+            
+        for frame in self.wrap_frames:
+            frame.scroll_y(self.dy)
             
     def get_selected_name(self):
-        return self.item_list[self.selected_index].name
+        return self.character_list[self.selected_index].name
         
     def create_items(self):
-        self.item_list = []
         dimensions = self.display_surface.get_size()
         width = dimensions[0] // 6
         height =  dimensions[1] // 5
         gap = width // 7
         
-        x1 = gap
-        y1 = gap
-        x2 = x1 + width
-        y2 = y1 + height
+        x_space = width + gap
+        y_space = height + gap
+        
+        x0 = gap
+        y0 = gap - y_space
+        
+        i_frame = 0
+        frame_row = []
+        
+        for i in range(self.max_row):
+            y = y0 + (y_space*i)
+            for j in range(self.max_col):
+                x = x0 + (x_space*j)
+                frame_row.append(MenuFrame(x, y, x+width, y+height, self.font))
+            self.frame_list.append(frame_row)
+            frame_row = []
+                    
+        
         
         for entry in os.scandir(PLAYER_DIRECTORY):
             if entry.is_dir():
                 name = os.path.basename(entry.path)
-                self.item_list.append(CharacterTile(x1, y1, x2, y2, name, self.font))
-                x1 += gap + width
-                x2 = x1 + width
-                if x2 > dimensions[0] - gap:
-                    x1 = gap
-                    x2 = x1 + width
-                    y1 += gap + height
-                    y2 = y1 + height
-              
+                self.character_list.append(CharacterInfo(name))
+                
     def display(self):
-        for index, item in enumerate(self.item_list):
-            item.display(self.display_surface, index==self.selected_index)
+        i_draw = self.character_offset
+        for row in self.frame_list:
+            for frame in row:
+                self.character_list[i_draw].draw(self.display_surface, frame, i_draw==self.selected_index)
+                i_draw += 1
+                if i_draw >= self.max_index:
+                    i_draw = 0
+        
+        if self.dy != 0:
+            i_draw -= self.max_col
+            if i_draw < 0:
+                i_draw = self.max_index - 1 +i_draw
+            for frame in self.wrap_frames:
+                self.character_list[i_draw].draw(self.display_surface, frame, i_draw==self.selected_index)
+                i_draw += 1
+                if i_draw >= self.max_index:
+                        i_draw = 0
+            
+    def clear(self):
+        self.selection_finished = False
         
     def run_turn(self):
         self.input()
@@ -444,3 +511,88 @@ class CharacterTile:
         self.y += amount
         self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         
+class MenuFrame:
+    def __init__(self, x1, y1, x2, y2, font) -> None:
+        width  = x2-x1
+        height = y2-y1
+        
+        self.width = width
+        self.height = height
+        
+        self.x = x1
+        self.y = y1
+        
+        self.y_offset = 0
+        self.x_offset = 0
+        
+        self.update_rect()
+        
+        
+        self.font:pygame.font.Font = font
+
+    def set_y_offset(self, offset:int):
+        print("setting offset")
+        self.y_offset = offset
+        self.update_rect()
+    
+    def scroll_y(self, dy):
+        if abs(self.y_offset + dy) < self.height:
+            self.y_offset += dy
+        self.update_rect()
+        
+    def update_rect(self):
+        self.rect =  pygame.Rect(
+                                 self.x+self.x_offset, 
+                                 self.y+self.y_offset, 
+                                 self.width, 
+                                 self.height
+                                )
+
+class CharacterInfo:
+    def __init__(self, name):
+        self.name = name
+        
+        # animations
+        self.frame = 0
+        self.tick = 0
+        self.ticks_per_frame = 5
+        self.idle_sprite = pygame.image.load(f"{PLAYER_DIRECTORY}\\{name}\\down_idle\\idle_down.png").convert_alpha()
+        self.active_sprites = []
+        directory = f"{PLAYER_DIRECTORY}\\{name}\\down"
+        for filename in os.listdir(directory):
+            file_path = os.path.join(directory, filename)
+            if os.path.isfile(file_path) and filename.lower().endswith('.png'):
+                self.active_sprites.append(pygame.image.load(file_path).convert_alpha())
+                
+    def display_sprite(self, surface:pygame.Surface, is_active:bool, frame:MenuFrame):
+        if not is_active:
+            surface.blit(self.idle_sprite, frame.rect.center)
+        else:
+            current_sprite = self.active_sprites[self.frame]
+            surface.blit(current_sprite, frame.rect.center)
+            self.tick += 1
+            if self.tick >= self.ticks_per_frame:
+                self.tick = 0 
+                self.frame += 1
+                self.frame %= len(self.active_sprites)
+    
+    def display_name(self, surface:pygame.Surface, is_active:bool, frame:MenuFrame):
+        font_color = TEXT_COLOR if not is_active else UI_BG_COLOR
+        # Title
+        title_surface:pygame.Surface = frame.font.render(self.name, False, font_color)
+        title_rect = title_surface.get_rect(midtop=frame.rect.midtop + pygame.math.Vector2(0, 20))
+         
+        # Draw
+        if not is_active:
+            surface.blit(title_surface, title_rect)
+        else:
+            surface.blit(title_surface, title_rect)
+    
+    def draw(self, surface, frame:MenuFrame, is_active:bool):
+        color = UPGRADE_BG_COLOR if not is_active else UPGRADE_SELECTED_BG_COLOR
+        pygame.draw.rect(surface, color, frame.rect)
+        pygame.draw.rect(surface, UI_BORDER_COLOR, frame.rect, 4)
+        self.display_name(surface, is_active, frame)
+        self.display_sprite(surface, is_active, frame)
+    
+    

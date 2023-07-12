@@ -21,6 +21,8 @@ class Level:
         # sprite group setup
         self.visible_sprites = YSortCameraGroup()
         self.obstacle_sprites = pygame.sprite.Group()
+        self.map_sprites = YSortCameraGroup()
+        self.player_sprites = YSortCameraGroup()
 
         # attack sprites
         self.current_attack = None
@@ -43,13 +45,21 @@ class Level:
         self.animation_player = AnimationPlayer()
         self.magic_player = MagicPlayer(self.animation_player)
         
+        # game_over
+        self.game_over_ticks = 0
+        
         self.player_selected = False
         
+    def game_is_over(self):
+        return not self.player.is_alive()
+    
     def create_map(self):
         self.visible_sprites = YSortCameraGroup()
         self.obstacle_sprites = pygame.sprite.Group()
         self.attack_sprites = pygame.sprite.Group()
         self.attackable_sprites = pygame.sprite.Group()
+        self.map_sprites = YSortCameraGroup()
+        # self.player_sprites = YSortCameraGroup()
         layouts = {
             'boundary': import_csv_layout('NinjaAdventure/map/map_FloorBlocks.csv'),
             'grass': import_csv_layout('NinjaAdventure/map/map_Grass.csv'),
@@ -68,14 +78,14 @@ class Level:
                         x = col_index * TILESIZE
                         y = row_index * TILESIZE
                         if style == 'boundary':
-                            Tile((x,y),[self.obstacle_sprites],'invisible')
+                            Tile((x,y),[self.obstacle_sprites, self.map_sprites],'invisible')
                         if style == 'grass':
                             random_grass_image = choice(graphics['grass'])
-                            Tile((x,y),[self.visible_sprites,self.obstacle_sprites,self.attackable_sprites],'grass',random_grass_image)
+                            Tile((x,y),[self.visible_sprites,self.obstacle_sprites,self.attackable_sprites, self.map_sprites],'grass',random_grass_image)
 
                         if style == 'object':
                             surf = graphics['objects'][int(col)]
-                            Tile((x,y),[self.visible_sprites,self.obstacle_sprites],'object',surf)
+                            Tile((x,y),[self.visible_sprites,self.obstacle_sprites, self.map_sprites],'object',surf)
                         if style == 'entities':
                             if col == '394':
                                 if self.player:
@@ -158,25 +168,113 @@ class Level:
         
     def run(self):
         # update and draw the game
-        self.visible_sprites.custom_draw(self.player)
-        self.ui.display(self.player)
+        if not self.game_is_over():
+            self.visible_sprites.custom_draw(self.player)
+            self.ui.display(self.player)
         
         if self.player_selected:
-            if not self.game_paused:	
-                self.visible_sprites.update()
-                self.visible_sprites.enemy_update(self.player)
-                self.player_attack_logic()
+            if not self.game_paused and not self.game_is_over():	
+                self._run_game_play()
+            elif self.player.is_alive():
+                self._run_pause_menu()
             else:
-                self.upgrade_menu.input()
-                self.upgrade_menu.display()
+                self._run_game_over()
         else:
-            self.player_selected = self.player_selector.run_turn()
-            self.player_name = self.player_selector.get_selected_name()
-            if self.player_selected:
+            self._run_player_selection()
+                
+    def _run_game_play(self):
+        self.visible_sprites.update()
+        self.visible_sprites.enemy_update(self.player)
+        self.player_attack_logic()
+        
+    def _run_player_selection(self):
+        self.player_selected = self.player_selector.run_turn()
+        self.player_name = self.player_selector.get_selected_name()
+        if self.player_selected:
+            self.create_map()
+        # self.player_selected = True
+        # self.player.health = 10
+    
+    def _run_pause_menu(self):
+        self.upgrade_menu.input()
+        self.upgrade_menu.display()
+        
+    def _run_game_over(self):
+        if self.game_over_ticks == 0:
+            self.deathShroud = Shroud(self.display_surface.get_width(),self.display_surface.get_height(), "Game Over!", "Press space to continue.")
+        self.map_sprites.custom_draw(self.player)
+        self.player.update()
+        self.ui.display(self.player)
+        if self.deathShroud.is_transparent():    
+            self.deathShroud.update()
+        else:
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_SPACE]:
                 self.create_map()
-            
+                self.player_selected=False
+                self.deathShroud.clear()
+                self.player_selector.clear()
+        if self.game_over_ticks < 200:
+            self.deathShroud.draw(self.display_surface)
+        else:
+            self.deathShroud.draw(self.display_surface, True)
+        self.player.draw(self.display_surface)
+        
+        self.game_over_ticks +=1
+        
     def toggle_menu(self):
         self.game_paused = not self.game_paused
+        
+class Shroud:
+    def __init__(self, width:int, height:int, 
+                 title:str, message:str,
+                 change_amount:int=1):
+        
+        self.title = title
+        self.message = message
+        self.opacity_percent = 0
+        self.opacity_change = change_amount
+        self.surface = pygame.Surface((width,height), pygame.SRCALPHA)
+        
+    def is_transparent(self):
+        return self.opacity_percent < 100
+    
+    def clear(self):
+        self.opacity_percent = 0
+    
+    def update(self):
+        if self.opacity_change > 0:
+            if self.opacity_percent < 100-self.opacity_change:
+                self.opacity_percent += self.opacity_change
+            else:
+                self.opacity_percent = 100
+        elif self.opacity_change < 0:
+            if self.opacity_percent > self.opacity_change:
+                self.opacity_percent += self.opacity_change
+            else:
+                self.opacity_percent = 0
+        self.surface.fill((0,0,0,self.opacity_percent*2.55))
+        if self.opacity_change >= 90:
+            self.draw_title
+        if self.opacity_percent == 100:
+            self.draw_message
+        
+    def draw_title(self):
+        title_surface:pygame.Surface = G_O_TITLE_FONT.render(self.title, False, G_O_TITLE_COLOR)
+        title_rect = title_surface.get_rect(midtop=self.surface.get_rect().center + pygame.math.Vector2(0, -150))
+        self.surface.blit(title_surface, title_rect)
+    
+    def draw_message(self):
+        title_surface:pygame.Surface = G_O_MESSAGE_FONT.render(self.message, False, G_O_MESSAGE_COLOR)
+        title_rect = title_surface.get_rect(midtop=self.surface.get_rect().center + pygame.math.Vector2(0, 50))
+        self.surface.blit(title_surface, title_rect)
+
+    def draw(self, display_surface:pygame.Surface, draw_message=False):
+        
+        if self.opacity_percent > 85:
+            self.draw_title()
+        if draw_message: self.draw_message()
+        display_surface.blit(self.surface, (0, 0))
 
 class YSortCameraGroup(pygame.sprite.Group):
     def __init__(self):
