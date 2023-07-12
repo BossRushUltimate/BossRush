@@ -1,3 +1,6 @@
+import pygame
+pygame.init()
+pyFont = pygame.font.Font 
 # game setup
 WIDTH = 1280
 HEIGHT = 720
@@ -33,6 +36,12 @@ TEXT_COLOR = '#EEEEEE'
 HEALTH_COLOR = 'red'
 ENERGY_COLOR = 'blue'
 UI_BORDER_COLOR_ACTIVE = 'gold'
+
+# Gameover screen
+G_O_TITLE_FONT = pyFont(UI_FONT, 72)
+G_O_MESSAGE_FONT = pyFont(UI_FONT, UI_FONT_SIZE)
+G_O_TITLE_COLOR = "#8a0303"
+G_O_MESSAGE_COLOR = "#EEEEEE"
 
 # weapons 
 weapon_data = {
