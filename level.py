@@ -23,10 +23,11 @@ class Level:
         self.obstacle_sprites = pygame.sprite.Group()
         self.map_sprites = YSortCameraGroup()
         self.player_sprites = YSortCameraGroup()
+        self.boss_sprites = YSortCameraGroup()
 
         # attack sprites
         self.current_attack = None
-        self.attack_sprites = pygame.sprite.Group()
+        self.attack_sprites = YSortCameraGroup()
         self.attackable_sprites = pygame.sprite.Group()
         self.game_paused = False
         
@@ -51,20 +52,25 @@ class Level:
         self.player_selected = False
         
     def game_is_over(self):
-        return not self.player.is_alive()
+        return not self.player.is_alive() or len(self.boss_sprites)==0
     
     def create_map(self):
         self.visible_sprites = YSortCameraGroup()
         self.obstacle_sprites = pygame.sprite.Group()
-        self.attack_sprites = pygame.sprite.Group()
+        self.attack_sprites = YSortCameraGroup()
         self.attackable_sprites = pygame.sprite.Group()
         self.map_sprites = YSortCameraGroup()
-        # self.player_sprites = YSortCameraGroup()
+        self.boss_sprites = YSortCameraGroup()
+        if self.player:
+            self.player.kill()
+        self.upgrade_menu = None
+        
         layouts = {
             'boundary': import_csv_layout('NinjaAdventure/map/map_FloorBlocks.csv'),
             'grass': import_csv_layout('NinjaAdventure/map/map_Grass.csv'),
             'object': import_csv_layout('NinjaAdventure/map/map_Objects.csv'),
-            'entities': import_csv_layout('NinjaAdventure/map/map_Entities.csv')
+            'entities': import_csv_layout('NinjaAdventure/map/map_Entities.csv'),
+            'bosses': import_csv_layout('NinjaAdventure/map/map_Bosses.csv') # replace with actual boss folder path if different
         }
         graphics = {
             'grass': import_folder('NinjaAdventure/graphics/Grass'),
@@ -78,7 +84,7 @@ class Level:
                         x = col_index * TILESIZE
                         y = row_index * TILESIZE
                         if style == 'boundary':
-                            Tile((x,y),[self.obstacle_sprites, self.map_sprites],'invisible')
+                            Tile((x,y),[self.obstacle_sprites],'invisible')
                         if style == 'grass':
                             random_grass_image = choice(graphics['grass'])
                             Tile((x,y),[self.visible_sprites,self.obstacle_sprites,self.attackable_sprites, self.map_sprites],'grass',random_grass_image)
@@ -88,9 +94,6 @@ class Level:
                             Tile((x,y),[self.visible_sprites,self.obstacle_sprites, self.map_sprites],'object',surf)
                         if style == 'entities':
                             if col == '394':
-                                if self.player:
-                                    self.player.kill()
-                                    self.player = None
                                 self.player = Player(
                                     self.player_name,
                                     (x,y),
@@ -99,8 +102,6 @@ class Level:
                                     self.create_attack,
                                     self.destroy_attack,
                                     self.create_magic)
-                                if self.upgrade_menu:
-                                    self.upgrade_menu = None
                                 self.upgrade_menu = Upgrade(self.player)
                             else:
                                 if col == '390': monster_name = 'bamboo'
@@ -114,9 +115,21 @@ class Level:
                                     self.damage_player,
                                     self.trigger_death_particles,
                                     self.add_exp)
+                        if style == "bosses":
+                            # Consider revising the following code to reflect possible boss names
+                            if col == '500': monster_name = 'big_joe'
+                            else: monster_name = 'boss'
+                            Enemy(monster_name,
+                                    (x,y),
+                                    [self.visible_sprites,self.attackable_sprites, self.boss_sprites],
+                                    self.obstacle_sprites,
+                                    self.damage_player,
+                                    self.trigger_death_particles,
+                                    self.add_exp)
     
     def create_attack(self):
         self.current_attack = Weapon(self.player,[self.visible_sprites,self.attack_sprites])
+        self.player.current_attack = self.current_attack
 
     def create_magic(self,style,strength,cost):
         if style == 'heal':
@@ -128,6 +141,7 @@ class Level:
         if self.current_attack:
             self.current_attack.kill()
         self.current_attack = None
+        self.player.clear_attack()
 
     def player_attack_logic(self):
         if self.attack_sprites:
@@ -171,16 +185,18 @@ class Level:
         if not self.game_is_over():
             self.visible_sprites.custom_draw(self.player)
             self.ui.display(self.player)
-        
-        if self.player_selected:
-            if not self.game_paused and not self.game_is_over():	
-                self._run_game_play()
-            elif self.player.is_alive():
-                self._run_pause_menu()
+            if self.player_selected:
+                if not self.game_paused:	
+                    self._run_game_play()
+                elif self.player.is_alive():
+                    self._run_pause_menu()
             else:
-                self._run_game_over()
+                self._run_player_selection()
         else:
-            self._run_player_selection()
+            if len(self.boss_sprites) == 0:
+                self._run_victory()
+            else:
+                self._run_defeat()
                 
     def _run_game_play(self):
         self.visible_sprites.update()
@@ -199,12 +215,13 @@ class Level:
         self.upgrade_menu.input()
         self.upgrade_menu.display()
         
-    def _run_game_over(self):
-        if self.game_over_ticks == 0:
-            self.deathShroud = Shroud(self.display_surface.get_width(),self.display_surface.get_height(), "Game Over!", "Press space to continue.")
+    def _run_defeat(self):
         self.map_sprites.custom_draw(self.player)
         self.player.update()
-        self.ui.display(self.player)
+        # self.ui.display(self.player)        
+        if self.game_over_ticks == 0:
+            self.deathShroud = Shroud(self.display_surface.get_width(),self.display_surface.get_height(), "Game Over!", "Press space to continue.")
+        
         if self.deathShroud.is_transparent():    
             self.deathShroud.update()
         else:
@@ -219,6 +236,45 @@ class Level:
         else:
             self.deathShroud.draw(self.display_surface, True)
         self.player.draw(self.display_surface)
+        
+        self.game_over_ticks +=1
+        
+    def _run_victory(self):
+        # timing logic
+        print(self.game_over_ticks)
+        if self.game_over_ticks == 0:
+            self.deathShroud = Shroud(self.display_surface.get_width(),self.display_surface.get_height(), "VICTORY!!!", "Press space to continue.")
+            self.player.declare_victory()
+            self.destroy_attack()
+        
+        elif self.game_over_ticks == 175:
+            self.create_attack()
+        
+        if self.game_over_ticks < 200: 
+            draw_message = False
+        else:
+            draw_message = True
+        
+        self.player.update()
+        # self.ui.display(self.player)
+        if self.deathShroud.is_transparent():    
+            self.deathShroud.update()
+        else:
+            keys = pygame.key.get_pressed()
+            if keys[pygame.K_SPACE]:
+                self.game_over_ticks = -1
+                self.create_map()
+                self.player_selected=False
+                self.deathShroud.clear()
+                self.player_selector.clear()
+                
+        
+        # Draw map
+        self.map_sprites.custom_draw(self.player)
+        self.deathShroud.draw(self.display_surface, draw_message)
+        self.player.draw(self.display_surface)
+        # if self.current_attack:
+        #     self.current_attack.draw(self.display_surface) #, self.player.rect.center)
         
         self.game_over_ticks +=1
         

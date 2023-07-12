@@ -37,7 +37,8 @@ class AnimationPlayer:
 				self.reflect_images(import_folder('NinjaAdventure/graphics/particles/leaf4')),
 				self.reflect_images(import_folder('NinjaAdventure/graphics/particles/leaf5')),
 				self.reflect_images(import_folder('NinjaAdventure/graphics/particles/leaf6'))
-				)
+				),
+			'big_joe': import_folder('NinjaAdventure/graphics/particles/smoke_orange')
 			}
 
     def reflect_images(self, frames):
