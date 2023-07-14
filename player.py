@@ -71,7 +71,6 @@ class Player(Entity):
         return not self.attacking and not self.status=="victory" and self.is_alive()
     
     def declare_victory(self):
-        print("\t\tvictory!")
         self.status = "victory"
         self.direction.x = 0
         self.direction.y = 0
