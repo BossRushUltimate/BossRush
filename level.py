@@ -11,6 +11,7 @@ from enemy import Enemy
 from particles import AnimationPlayer
 from magic import MagicPlayer
 from upgrade import Upgrade
+from boss import Boss
 
 class Level:
     def __init__(self):
@@ -119,7 +120,7 @@ class Level:
                             # Consider revising the following code to reflect possible boss names
                             if col == '500': monster_name = 'big_joe'
                             else: monster_name = 'boss'
-                            Enemy(monster_name,
+                            Boss(monster_name,
                                     (x,y),
                                     [self.visible_sprites,self.attackable_sprites, self.boss_sprites],
                                     self.obstacle_sprites,
