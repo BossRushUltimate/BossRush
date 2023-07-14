@@ -115,7 +115,7 @@ class Boss(Entity):
             if self.status == 'attack':
                 self.can_attack = False
             self.frame_index = 0
-
+            
         self.image = animation[int(self.frame_index)]
         self.rect = self.image.get_rect(center = self.hitbox.center)
 
@@ -134,21 +134,18 @@ class Boss(Entity):
                 self.can_attack = True
 
         if self.phase == 1:
-            #print("Phase 1")
             current_time = pygame.time.get_ticks()
             if current_time - self.phase_time >= self.phase_start_time:
                 self.phase += 1
                 self.phase_start_time = pygame.time.get_ticks()
 
         if self.phase == 2:
-           # print("Phase 2")    
             current_time = pygame.time.get_ticks() 
             if current_time - self.phase_time >= self.phase_start_time:
                 self.phase += 1
                 self.phase_start_time = pygame.time.get_ticks()
                 
-        if self.phase == 3:
-            #print("Phase 3")         
+        if self.phase == 3: 
             current_time = pygame.time.get_ticks()
             if current_time - 1000 >= self.phase_start_time:
                 self.phase = 1
@@ -161,9 +158,6 @@ class Boss(Entity):
             if attack_type == 'weapon':
                 self.health -= 100
                 self.phase = 1
-            # Hit by magic
-            # else:
-            #     self.health -= 100
 
             self.hit_time = pygame.time.get_ticks()
             self.vulnerable = False
@@ -180,7 +174,6 @@ class Boss(Entity):
         self.animate()
         self.cooldowns()
         self.check_death()
-        #print(self.health)
 
     def enemy_update(self,player):
         self.get_status(player)

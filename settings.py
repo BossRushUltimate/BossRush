@@ -1,3 +1,6 @@
+import pygame
+pygame.init()
+pyFont = pygame.font.Font 
 # game setup
 WIDTH = 1280
 HEIGHT = 720
@@ -34,6 +37,12 @@ HEALTH_COLOR = 'red'
 ENERGY_COLOR = 'blue'
 UI_BORDER_COLOR_ACTIVE = 'gold'
 
+# Gameover screen
+G_O_TITLE_FONT = pyFont(UI_FONT, 72)
+G_O_MESSAGE_FONT = pyFont(UI_FONT, UI_FONT_SIZE)
+G_O_TITLE_COLOR = "#8a0303"
+G_O_MESSAGE_COLOR = "#EEEEEE"
+
 # weapons 
 weapon_data = {
     'sword': {'cooldown': 100, 'damage': 15,'graphic':'NinjaAdventure/graphics/weapons/sword/full.png'},
@@ -52,5 +61,5 @@ monster_data = {
     'raccoon': {'health': 300,'exp':250,'damage':40,'attack_type': 'claw',  'attack_sound':'NinjaAdventure/audio/attack/claw.wav','speed': 2, 'resistance': 3, 'attack_radius': 120, 'notice_radius': 400},
     'spirit': {'health': 100,'exp':110,'damage':8,'attack_type': 'thunder', 'attack_sound':'NinjaAdventure/audio/attack/fireball.wav', 'speed': 4, 'resistance': 3, 'attack_radius': 60, 'notice_radius': 350},
     'bamboo': {'health': 70,'exp':120,'damage':6,'attack_type': 'leaf_attack', 'attack_sound':'NinjaAdventure/audio/attack/slash.wav', 'speed': 3, 'resistance': 3, 'attack_radius': 50, 'notice_radius': 300},
-    'cyclops': {'health': 300,'exp':1000,'damage':50,'attack_type': 'slash', 'attack_sound':'NinjaAdventure/audio/attack/slash.wav', 'speed': 5, 'resistance': 3, 'attack_radius': 100, 'notice_radius': 300}
+    'big_joe': {'health': 500,'exp':550,'damage':75,'attack_type': 'claw',  'attack_sound':'NinjaAdventure/audio/attack/claw.wav','speed': 5, 'resistance': 5, 'attack_radius': 135, 'notice_radius': 750}
     }
