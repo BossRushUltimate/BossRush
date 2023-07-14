@@ -115,7 +115,7 @@ class Boss(Entity):
             if self.status == 'attack':
                 self.can_attack = False
             self.frame_index = 0
-
+            
         self.image = animation[int(self.frame_index)]
         self.rect = self.image.get_rect(center = self.hitbox.center)
 
@@ -174,7 +174,6 @@ class Boss(Entity):
         self.animate()
         self.cooldowns()
         self.check_death()
-        print(self.health)
 
     def enemy_update(self,player):
         self.get_status(player)
