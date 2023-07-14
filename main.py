@@ -9,13 +9,13 @@ class Game:
         # general setup
         pygame.init()
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
-        pygame.display.set_caption("Zelda")
+        pygame.display.set_caption("The Adventures of Unknown")
         self.clock = pygame.time.Clock()
 
         self.level = Level()
 
         # sound
-        main_sound = pygame.mixer.Sound('NinjaAdventure/audio/main.ogg')
+        main_sound = pygame.mixer.Sound('NinjaAdventure/audio/forest.mp3')
         main_sound.play(loops = -1)
 
     def run(self):

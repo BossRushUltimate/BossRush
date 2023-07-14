@@ -148,7 +148,6 @@ class Enemy(Entity):
             self.direction *= -self.resistance
 
     def update(self):
-        # self.health -= 5
         self.hit_reaction()
         self.move(self.speed)
         self.animate()
