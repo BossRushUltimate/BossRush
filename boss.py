@@ -180,7 +180,7 @@ class Boss(Entity):
         self.animate()
         self.cooldowns()
         self.check_death()
-        print(self.health)
+        #print(self.health)
 
     def enemy_update(self,player):
         self.get_status(player)

@@ -93,7 +93,7 @@ class Level:
 								if self.upgrade_menu:
 									self.upgrade_menu = None
 								self.upgrade_menu = Upgrade(self.player)
-							elif col == '395':
+							elif col == '500':
 								Boss("cyclops",
 									(x,y),
 									[self.visible_sprites,self.attackable_sprites],
