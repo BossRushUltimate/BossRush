@@ -52,7 +52,8 @@ class Player(Entity):
         self.magic_switch_time = None
 
         # stats
-        self.max_stats = {'health': 300, 'energy': 140, 'attack': 20, 'magic': 10, 'speed': 10}
+        self.stats = {'health': 100, 'energy': 50, 'attack': 10, 'magic': 5, 'speed': 5}
+        self.max_stats = {'health': 400, 'energy': 200, 'attack': 40, 'magic': 20, 'speed': 20}
         self.upgrade_cost = {'health': 100, 'energy': 100, 'attack': 100, 'magic': 100, 'speed': 100}
         self.health = self.stats['health']
         self.energy = self.stats['energy']
@@ -307,7 +308,7 @@ class Player(Entity):
         self.animate()
         self.energy_recovery()
         
-    def draw(self, surface:pygame.Surface):
+    def draw(self, surface:pygame.Surface, draw_weapon=False):
         surf_center = pygame.math.Vector2(surface.get_rect().center)
         player_x, player_y = self.rect.center
         player_offset = pygame.math.Vector2(player_x*-1, player_y*-1)
@@ -315,7 +316,7 @@ class Player(Entity):
         
         surface.blit(self.image, destination)
         
-        if self.current_attack != None:
+        if self.current_attack != None and draw_weapon:
             self.current_attack:Weapon
             att_location = pygame.math.Vector2(self.current_attack.rect.topleft)
             destination =  player_offset + att_location + surf_center
