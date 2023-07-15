@@ -4,7 +4,12 @@
 This game is an adventure game developed using Pygame. It was originally developed in Visual Studio Code. The objective of the game is to navigate through the map, defeat enemies, upgrade your character, and finally, defeat the boss in order to complete the adventure.
 
 ## Controls
-The player controls the main character using the arrow keys for movement, the control button for magic, and the spacebar to attack. Also, click the 'm' key to open the upgrade menu, the 'q' key to change your weapon, and the 'e' key to change your magic.
+* Main character movement: Arrow Keys
+* Magic: Control
+* Attack: Spacebar
+* Upgrade Menu: 'm' key
+* Weapon Selection: 'q' key
+* Magic Selection: 'e' key
 
 ## Features
 * Exciting adventure gameplay.
@@ -13,7 +18,7 @@ The player controls the main character using the arrow keys for movement, the co
 * Magic abilities to help the player in battles.
 
 ## Demo
-[Demonstration Video] ()
+[Demonstration Video](https://youtu.be/9COAGPMYBho)
 
 ## Useful Websites
 [Creating a Zelda style game in Python](https://www.youtube.com/watch?v=QU1pPzEGrqw)
