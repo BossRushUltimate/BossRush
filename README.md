@@ -16,8 +16,8 @@ The player controls the main character using the arrow keys for movement, the co
 [Demonstration Video] ()
 
 # Useful Websites
-[Creating a Zelda style game in Python] (https://www.youtube.com/watch?v=QU1pPzEGrqw)
-[Ninja Adventure Asset Pack] (https://pixel-boy.itch.io/ninja-adventure-asset-pack)
+[Creating a Zelda style game in Python](https://www.youtube.com/watch?v=QU1pPzEGrqw)
+[Ninja Adventure Asset Pack](https://pixel-boy.itch.io/ninja-adventure-asset-pack)
 
 # Future Work
 * Add levels.
